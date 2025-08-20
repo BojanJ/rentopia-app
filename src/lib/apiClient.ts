@@ -36,14 +36,20 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle 401 Unauthorized - token expired or invalid
+    // Handle 401 Unauthorized - but not for login/register endpoints
     if (error.response?.status === 401) {
-      const { logout } = useAuthStore.getState();
-      logout();
+      const url = error.config?.url || '';
+      const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
       
-      // Optionally redirect to login page
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login';
+      // Only trigger logout for 401s on protected endpoints, not auth endpoints
+      if (!isAuthEndpoint) {
+        const { logout } = useAuthStore.getState();
+        logout();
+        
+        // Optionally redirect to login page
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
       }
     }
     

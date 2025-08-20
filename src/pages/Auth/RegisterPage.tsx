@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -67,11 +68,12 @@ export default function RegisterPage() {
 
   const watchedRole = watch("role");
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate("/dashboard");
-    return null;
-  }
+  // Redirect if already authenticated - use useEffect to prevent reloading on errors
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
 
   const onSubmit = (data: RegisterFormData) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
