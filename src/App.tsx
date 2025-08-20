@@ -6,9 +6,13 @@ import {
 } from "react-router-dom";
 import AuthLayout from "./layouts/AuthLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
+import EmptyStateLayout from "./layouts/EmptyStateLayout";
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
+import EmptyStatePage from "./pages/EmptyStatePage";
+import ProtectedDashboardRoute from "./components/ProtectedDashboardRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuthStore } from "./store/authStore";
 
 function App() {
@@ -27,12 +31,31 @@ function App() {
           </Route>
 
           {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedDashboardRoute>
+                <DashboardLayout />
+              </ProtectedDashboardRoute>
+            }
+          >
             <Route index element={<DashboardPage />} />
             {/* You can add more dashboard routes here */}
             {/* <Route path="properties" element={<PropertiesPage />} />
             <Route path="tenants" element={<TenantsPage />} />
             <Route path="maintenance" element={<MaintenancePage />} /> */}
+          </Route>
+
+          {/* Empty State Route */}
+          <Route 
+            path="/empty-state" 
+            element={
+              <ProtectedRoute>
+                <EmptyStateLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<EmptyStatePage />} />
           </Route>
 
           {/* Root Route - Redirect based on auth status */}
