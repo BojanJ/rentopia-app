@@ -1,56 +1,61 @@
-import { useEffect, useCallback } from 'react';
-import { usePropertyStore } from '@/store/propertyStore';
-import { propertyService } from '@/services/propertyService';
+import { useMemo } from "react";
+import { useProperties as usePropertiesQuery } from "./usePropertyApi";
+import { usePropertyStore } from "@/store/propertyStore";
+import { useAuthStore } from "@/store/authStore";
 
+/**
+ * A convenient hook that provides properties data and common selectors
+ * This wraps the TanStack Query hook and provides additional computed values
+ */
 export const useProperties = () => {
-  const {
-    properties,
-    selectedProperty,
-    isLoading,
-    error,
-    setProperties,
-    setLoading,
-    setError,
-    clearError,
-    getActiveProperties,
-  } = usePropertyStore();
+  const { isAuthenticated } = useAuthStore();
+  const { selectedProperty, setSelectedProperty } = usePropertyStore();
 
-  // Load properties from API
-  const loadProperties = useCallback(async () => {
-    try {
-      setLoading(true);
-      clearError();
-      const fetchedProperties = await propertyService.getProperties();
-      setProperties(fetchedProperties);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load properties';
-      setError(errorMessage);
-      console.error('Failed to load properties:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [setProperties, setLoading, setError, clearError]);
+  // Use the TanStack Query hook
+  const propertiesQuery = usePropertiesQuery();
 
-  // Refresh properties
-  const refreshProperties = useCallback(() => {
-    return loadProperties();
-  }, [loadProperties]);
+  // Safely get properties data - only when authenticated and data is available
+  const properties = useMemo(() => {
+    if (!isAuthenticated) return [];
+    const properties = propertiesQuery.data?.properties;
 
-  // Auto-load properties on mount
-  useEffect(() => {
-    if (properties.length === 0 && !isLoading && !error) {
-      loadProperties();
-    }
-  }, [properties.length, isLoading, error, loadProperties]);
+    return Array.isArray(properties) ? properties : [];
+  }, [propertiesQuery.data, isAuthenticated]);
+
+  // Compute derived values
+  const activeProperties = useMemo(() => {
+    return properties.filter((property) => property?.status === "active");
+  }, [properties]);
+
+  const getPropertyById = (id: string) => {
+    if (!Array.isArray(properties)) return undefined;
+    return properties.find((property) => property?.id === id);
+  };
+
+  const getPropertiesByType = (type: string) => {
+    if (!Array.isArray(properties)) return [];
+    return properties.filter((property) => property?.propertyType === type);
+  };
 
   return {
+    // Raw query data
+    ...propertiesQuery,
+
+    // Computed properties
     properties,
-    activeProperties: getActiveProperties(),
+    activeProperties,
+
+    // Selected property state
     selectedProperty,
-    isLoading,
-    error,
-    loadProperties,
-    refreshProperties,
-    clearError,
+    setSelectedProperty,
+
+    // Utility functions
+    getPropertyById,
+    getPropertiesByType,
+
+    // Convenient aliases
+    isLoading: propertiesQuery.isLoading,
+    error: propertiesQuery.error,
+    refetch: propertiesQuery.refetch,
   };
 };

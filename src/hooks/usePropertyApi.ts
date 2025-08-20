@@ -1,8 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { api } from '../lib/apiClient';
+import { useAuthStore } from '../store/authStore';
 import { usePropertyStore } from '../store/propertyStore';
 import type { Property } from '../store/propertyStore';
+import { type PaginationParams, buildPaginationParams } from '../types/pagination';
+import { usePaginatedQuery } from './usePagination';
+
+// API Response type for properties (based on your actual API response)
+export interface PropertiesApiResponse {
+  properties: Property[];
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+}
+
+// Re-export pagination types for convenience
+export type { PaginationParams } from '../types/pagination';
 
 // Types for API requests
 export interface CreatePropertyRequest {
@@ -34,8 +50,10 @@ export interface UpdatePropertyRequest extends Partial<CreatePropertyRequest> {
 
 // Property API functions
 const propertyApi = {
-  getProperties: async (): Promise<Property[]> => {
-    const response = await api.get<Property[]>('/properties');
+  getProperties: async (params: PaginationParams = {}): Promise<PropertiesApiResponse> => {
+    const searchParams = buildPaginationParams(params);
+    const url = `/properties${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const response = await api.get<PropertiesApiResponse>(url);
     return response.data;
   },
 
@@ -70,112 +88,144 @@ const propertyApi = {
   },
 };
 
-// Query keys
+// Query keys - updated to include pagination params
 export const propertyKeys = {
   all: ['properties'] as const,
   lists: () => [...propertyKeys.all, 'list'] as const,
-  list: (filters: string) => [...propertyKeys.lists(), { filters }] as const,
+  list: (filters: string, pagination?: PaginationParams) => [...propertyKeys.lists(), { filters, pagination }] as const,
   details: () => [...propertyKeys.all, 'detail'] as const,
   detail: (id: string) => [...propertyKeys.details(), id] as const,
 };
 
 // React Query hooks for properties
-export const useProperties = (filters?: string) => {
-  const { setProperties, setLoading, setError } = usePropertyStore();
+export const useProperties = (filters?: string, pagination?: PaginationParams) => {
+  const { isAuthenticated } = useAuthStore();
   
-  const query = useQuery({
-    queryKey: propertyKeys.list(filters || ''),
-    queryFn: propertyApi.getProperties,
+  return useQuery({
+    queryKey: propertyKeys.list(filters || '', pagination),
+    queryFn: () => propertyApi.getProperties(pagination),
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
+};
 
-  useEffect(() => {
-    if (query.data) {
-      setProperties(query.data);
-      setError(null);
-    }
-    if (query.error) {
-      setError(query.error.message);
-    }
-    setLoading(query.isLoading);
-  }, [query.data, query.error, query.isLoading, setProperties, setError, setLoading]);
+// New paginated properties hook with better UX
+export const usePaginatedProperties = (filters?: string, initialPagination?: PaginationParams) => {
+  const { isAuthenticated } = useAuthStore();
+  
+  return usePaginatedQuery({
+    queryKey: (pagination) => propertyKeys.list(filters || '', pagination),
+    queryFn: (pagination) => propertyApi.getProperties(pagination),
+    initialPagination,
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
 
-  return query;
+// Hook that extracts properties array and pagination info separately
+export const usePropertiesList = (filters?: string, initialPagination?: PaginationParams) => {
+  const result = usePaginatedProperties(filters, initialPagination);
+  
+  return {
+    ...result,
+    properties: result.data?.properties || [],
+    paginationMeta: result.data?.pagination,
+    hasNextPage: result.data?.pagination?.hasMore || false,
+    hasPrevPage: (result.pagination.offset || 0) > 0,
+    totalProperties: result.data?.pagination?.total || 0,
+  };
 };
 
 export const useProperty = (id: string) => {
-  const { setSelectedProperty, setError } = usePropertyStore();
+  const { isAuthenticated } = useAuthStore();
   
-  const query = useQuery({
+  return useQuery({
     queryKey: propertyKeys.detail(id),
     queryFn: () => propertyApi.getProperty(id),
-    enabled: !!id,
+    enabled: !!id && isAuthenticated,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
-  useEffect(() => {
-    if (query.data) {
-      setSelectedProperty(query.data);
-      setError(null);
-    }
-    if (query.error) {
-      setError(query.error.message);
-    }
-  }, [query.data, query.error, setSelectedProperty, setError]);
-
-  return query;
 };
 
 export const useCreateProperty = () => {
   const queryClient = useQueryClient();
-  const { addProperty } = usePropertyStore();
+  const { setLoading } = usePropertyStore();
   
   return useMutation({
     mutationFn: propertyApi.createProperty,
-    onSuccess: (data) => {
-      addProperty(data);
+    onMutate: () => {
+      setLoading(true);
+    },
+    onSuccess: () => {
+      // Invalidate all property list queries (including paginated ones)
       queryClient.invalidateQueries({ queryKey: propertyKeys.lists() });
+      setLoading(false);
+    },
+    onError: () => {
+      setLoading(false);
     },
   });
 };
 
 export const useUpdateProperty = () => {
   const queryClient = useQueryClient();
-  const { updateProperty } = usePropertyStore();
+  const { setLoading } = usePropertyStore();
   
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdatePropertyRequest }) => 
       propertyApi.updateProperty(id, data),
+    onMutate: () => {
+      setLoading(true);
+    },
     onSuccess: (data) => {
-      updateProperty(data.id, data);
       queryClient.invalidateQueries({ queryKey: propertyKeys.detail(data.id) });
+      // Invalidate all property list queries (including paginated ones)
       queryClient.invalidateQueries({ queryKey: propertyKeys.lists() });
+      setLoading(false);
+    },
+    onError: () => {
+      setLoading(false);
     },
   });
 };
 
 export const useDeleteProperty = () => {
   const queryClient = useQueryClient();
-  const { removeProperty } = usePropertyStore();
+  const { setLoading } = usePropertyStore();
   
   return useMutation({
     mutationFn: propertyApi.deleteProperty,
+    onMutate: () => {
+      setLoading(true);
+    },
     onSuccess: (_, id) => {
-      removeProperty(id);
+      // Invalidate all property list queries (including paginated ones)
       queryClient.invalidateQueries({ queryKey: propertyKeys.lists() });
       queryClient.removeQueries({ queryKey: propertyKeys.detail(id) });
+      setLoading(false);
+    },
+    onError: () => {
+      setLoading(false);
     },
   });
 };
 
 export const useUploadPropertyImages = () => {
   const queryClient = useQueryClient();
-  const { updateProperty } = usePropertyStore();
+  const { setLoading } = usePropertyStore();
   
   return useMutation({
     mutationFn: ({ propertyId, files }: { propertyId: string; files: File[] }) => 
       propertyApi.uploadPropertyImages(propertyId, files),
+    onMutate: () => {
+      setLoading(true);
+    },
     onSuccess: (data) => {
-      updateProperty(data.id, data);
       queryClient.invalidateQueries({ queryKey: propertyKeys.detail(data.id) });
+      setLoading(false);
+    },
+    onError: () => {
+      setLoading(false);
     },
   });
 };
