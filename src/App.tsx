@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Navigate,
   Route,
@@ -8,11 +7,13 @@ import {
 import AuthLayout from "./layouts/AuthLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 import LoginPage from "./pages/Auth/LoginPage";
+import RegisterPage from "./pages/Auth/RegisterPage";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
+import { useAuthStore } from "./store/authStore";
 
 function App() {
-  // For demonstration purposes, we'll allow toggling between auth states
-  const [isAuthenticated] = useState(true);
+  // Use the actual auth store instead of hardcoded state
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <>
@@ -21,6 +22,7 @@ function App() {
           {/* Auth Routes */}
           <Route path="/auth" element={<AuthLayout />}>
             <Route path="login" element={<LoginPage />} />
+            <Route path="register" element={<RegisterPage />} />
             <Route index element={<Navigate to="/auth/login" replace />} />
           </Route>
 
