@@ -15,6 +15,13 @@ import ProtectedDashboardRoute from "./components/ProtectedDashboardRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuthStore } from "./store/authStore";
 
+// Property Management Pages
+import PropertiesPage from "./pages/Admin/Properties/PropertiesPage";
+import AddPropertyPage from "./pages/Admin/Properties/AddPropertyPage";
+import PropertyDetailsPage from "./pages/Admin/Properties/PropertyDetailsPage";
+import EditPropertyPage from "./pages/Admin/Properties/EditPropertyPage";
+import PropertySettingsPage from "./pages/Admin/Properties/PropertySettingsPage";
+
 function App() {
   // Use the actual auth store instead of hardcoded state
   const { isAuthenticated } = useAuthStore();
@@ -44,6 +51,24 @@ function App() {
             {/* <Route path="properties" element={<PropertiesPage />} />
             <Route path="tenants" element={<TenantsPage />} />
             <Route path="maintenance" element={<MaintenancePage />} /> */}
+          </Route>
+
+          {/* Admin Routes */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="properties" element={<PropertiesPage />} />
+            <Route path="properties/add" element={<AddPropertyPage />} />
+            <Route path="properties/:id" element={<PropertyDetailsPage />} />
+            <Route path="properties/:id/edit" element={<EditPropertyPage />} />
+            <Route path="properties/settings" element={<PropertySettingsPage />} />
+            <Route path="service-providers" element={<div>Service Providers (Coming Soon)</div>} />
+            <Route path="settings/*" element={<div>Settings (Coming Soon)</div>} />
           </Route>
 
           {/* Empty State Route */}

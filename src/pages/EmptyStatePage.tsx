@@ -1,15 +1,13 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Home, Plus, MapPin, Users, Calendar } from "lucide-react";
 
 export default function EmptyStatePage() {
-  const [isAddingProperty, setIsAddingProperty] = useState(false);
+  const navigate = useNavigate();
 
   const handleAddProperty = () => {
-    // TODO: Implement property addition functionality
-    setIsAddingProperty(true);
-    console.log("Add property clicked - functionality to be implemented");
+    navigate("/admin/properties/add");
   };
 
   return (
@@ -77,10 +75,9 @@ export default function EmptyStatePage() {
               <Button 
                 onClick={handleAddProperty}
                 className="w-full h-12 text-base"
-                disabled={isAddingProperty}
               >
                 <Plus className="mr-2 h-5 w-5" />
-                {isAddingProperty ? "Coming Soon..." : "Add Your First Property"}
+                Add Your First Property
               </Button>
               <p className="text-xs text-gray-500 text-center mt-3">
                 You can always add more properties later from the dashboard

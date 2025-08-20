@@ -1,10 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/apiClient';
-import { useAuthStore } from '../store/authStore';
-import { usePropertyStore } from '../store/propertyStore';
-import type { Property } from '../store/propertyStore';
-import { type PaginationParams, buildPaginationParams } from '../types/pagination';
-import { usePaginatedQuery } from './usePagination';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "../lib/apiClient";
+import { useAuthStore } from "../store/authStore";
+import { usePropertyStore } from "../store/propertyStore";
+import type { Property } from "../store/propertyStore";
+import {
+  type PaginationParams,
+  buildPaginationParams,
+} from "../types/pagination";
+import { usePaginatedQuery } from "./usePagination";
 
 // API Response type for properties (based on your actual API response)
 export interface PropertiesApiResponse {
@@ -17,8 +20,12 @@ export interface PropertiesApiResponse {
   };
 }
 
+export interface PropertyApiResponse {
+  property: Property;
+}
+
 // Re-export pagination types for convenience
-export type { PaginationParams } from '../types/pagination';
+export type { PaginationParams } from "../types/pagination";
 
 // Types for API requests
 export interface CreatePropertyRequest {
@@ -30,7 +37,7 @@ export interface CreatePropertyRequest {
   state: string;
   postalCode: string;
   country: string;
-  propertyType: Property['propertyType'];
+  propertyType: Property["propertyType"];
   bedrooms: number;
   bathrooms: number;
   maxOccupancy: number;
@@ -50,24 +57,31 @@ export interface UpdatePropertyRequest extends Partial<CreatePropertyRequest> {
 
 // Property API functions
 const propertyApi = {
-  getProperties: async (params: PaginationParams = {}): Promise<PropertiesApiResponse> => {
+  getProperties: async (
+    params: PaginationParams = {}
+  ): Promise<PropertiesApiResponse> => {
     const searchParams = buildPaginationParams(params);
-    const url = `/properties${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    const url = `/properties${
+      searchParams.toString() ? `?${searchParams.toString()}` : ""
+    }`;
     const response = await api.get<PropertiesApiResponse>(url);
     return response.data;
   },
 
-  getProperty: async (id: string): Promise<Property> => {
-    const response = await api.get<Property>(`/properties/${id}`);
+  getProperty: async (id: string): Promise<PropertyApiResponse> => {
+    const response = await api.get<PropertyApiResponse>(`/properties/${id}`);
     return response.data;
   },
 
   createProperty: async (data: CreatePropertyRequest): Promise<Property> => {
-    const response = await api.post<Property>('/properties', data);
+    const response = await api.post<Property>("/properties", data);
     return response.data;
   },
 
-  updateProperty: async (id: string, data: UpdatePropertyRequest): Promise<Property> => {
+  updateProperty: async (
+    id: string,
+    data: UpdatePropertyRequest
+  ): Promise<Property> => {
     const response = await api.patch<Property>(`/properties/${id}`, data);
     return response.data;
   },
@@ -76,33 +90,43 @@ const propertyApi = {
     await api.delete(`/properties/${id}`);
   },
 
-  uploadPropertyImages: async (propertyId: string, files: File[]): Promise<Property> => {
+  uploadPropertyImages: async (
+    propertyId: string,
+    files: File[]
+  ): Promise<Property> => {
     const formData = new FormData();
     files.forEach((file, index) => {
       formData.append(`images`, file);
       formData.append(`displayOrder[${index}]`, index.toString());
     });
-    
-    const response = await api.upload<Property>(`/properties/${propertyId}/images`, formData);
+
+    const response = await api.upload<Property>(
+      `/properties/${propertyId}/images`,
+      formData
+    );
     return response.data;
   },
 };
 
 // Query keys - updated to include pagination params
 export const propertyKeys = {
-  all: ['properties'] as const,
-  lists: () => [...propertyKeys.all, 'list'] as const,
-  list: (filters: string, pagination?: PaginationParams) => [...propertyKeys.lists(), { filters, pagination }] as const,
-  details: () => [...propertyKeys.all, 'detail'] as const,
+  all: ["properties"] as const,
+  lists: () => [...propertyKeys.all, "list"] as const,
+  list: (filters: string, pagination?: PaginationParams) =>
+    [...propertyKeys.lists(), { filters, pagination }] as const,
+  details: () => [...propertyKeys.all, "detail"] as const,
   detail: (id: string) => [...propertyKeys.details(), id] as const,
 };
 
 // React Query hooks for properties
-export const useProperties = (filters?: string, pagination?: PaginationParams) => {
+export const useProperties = (
+  filters?: string,
+  pagination?: PaginationParams
+) => {
   const { isAuthenticated } = useAuthStore();
-  
+
   return useQuery({
-    queryKey: propertyKeys.list(filters || '', pagination),
+    queryKey: propertyKeys.list(filters || "", pagination),
     queryFn: () => propertyApi.getProperties(pagination),
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -110,11 +134,14 @@ export const useProperties = (filters?: string, pagination?: PaginationParams) =
 };
 
 // New paginated properties hook with better UX
-export const usePaginatedProperties = (filters?: string, initialPagination?: PaginationParams) => {
+export const usePaginatedProperties = (
+  filters?: string,
+  initialPagination?: PaginationParams
+) => {
   const { isAuthenticated } = useAuthStore();
-  
+
   return usePaginatedQuery({
-    queryKey: (pagination) => propertyKeys.list(filters || '', pagination),
+    queryKey: (pagination) => propertyKeys.list(filters || "", pagination),
     queryFn: (pagination) => propertyApi.getProperties(pagination),
     initialPagination,
     enabled: isAuthenticated,
@@ -123,9 +150,12 @@ export const usePaginatedProperties = (filters?: string, initialPagination?: Pag
 };
 
 // Hook that extracts properties array and pagination info separately
-export const usePropertiesList = (filters?: string, initialPagination?: PaginationParams) => {
+export const usePropertiesList = (
+  filters?: string,
+  initialPagination?: PaginationParams
+) => {
   const result = usePaginatedProperties(filters, initialPagination);
-  
+
   return {
     ...result,
     properties: result.data?.properties || [],
@@ -138,10 +168,10 @@ export const usePropertiesList = (filters?: string, initialPagination?: Paginati
 
 export const useProperty = (id: string) => {
   const { isAuthenticated } = useAuthStore();
-  
+
   return useQuery({
     queryKey: propertyKeys.detail(id),
-    queryFn: () => propertyApi.getProperty(id),
+    queryFn: () => propertyApi.getProperty(id).then((res) => res.property),
     enabled: !!id && isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -150,7 +180,7 @@ export const useProperty = (id: string) => {
 export const useCreateProperty = () => {
   const queryClient = useQueryClient();
   const { setLoading } = usePropertyStore();
-  
+
   return useMutation({
     mutationFn: propertyApi.createProperty,
     onMutate: () => {
@@ -170,9 +200,9 @@ export const useCreateProperty = () => {
 export const useUpdateProperty = () => {
   const queryClient = useQueryClient();
   const { setLoading } = usePropertyStore();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdatePropertyRequest }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdatePropertyRequest }) =>
       propertyApi.updateProperty(id, data),
     onMutate: () => {
       setLoading(true);
@@ -192,7 +222,7 @@ export const useUpdateProperty = () => {
 export const useDeleteProperty = () => {
   const queryClient = useQueryClient();
   const { setLoading } = usePropertyStore();
-  
+
   return useMutation({
     mutationFn: propertyApi.deleteProperty,
     onMutate: () => {
@@ -213,10 +243,15 @@ export const useDeleteProperty = () => {
 export const useUploadPropertyImages = () => {
   const queryClient = useQueryClient();
   const { setLoading } = usePropertyStore();
-  
+
   return useMutation({
-    mutationFn: ({ propertyId, files }: { propertyId: string; files: File[] }) => 
-      propertyApi.uploadPropertyImages(propertyId, files),
+    mutationFn: ({
+      propertyId,
+      files,
+    }: {
+      propertyId: string;
+      files: File[];
+    }) => propertyApi.uploadPropertyImages(propertyId, files),
     onMutate: () => {
       setLoading(true);
     },

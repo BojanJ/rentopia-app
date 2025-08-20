@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import {
 import { usePropertyStore } from "@/store";
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const stats = [
     {
       title: "Total Properties",
@@ -145,7 +147,11 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Button className="w-full justify-start" variant="outline">
+              <Button 
+                className="w-full justify-start" 
+                variant="outline"
+                onClick={() => navigate("/admin/properties/add")}
+              >
                 <Home className="mr-2 h-4 w-4" />
                 Add New Property
               </Button>

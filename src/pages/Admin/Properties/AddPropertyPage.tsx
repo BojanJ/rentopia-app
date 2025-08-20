@@ -1,0 +1,698 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Home,
+  ArrowLeft,
+  MapPin,
+  DollarSign,
+  Users,
+  Settings,
+  Plus,
+  X,
+} from "lucide-react";
+import { useCreateProperty } from "@/hooks/usePropertyApi";
+
+// Property form validation schema
+const propertySchema = z.object({
+  name: z.string()
+    .min(1, "Property name is required")
+    .max(200, "Property name must be less than 200 characters"),
+  description: z.string().optional(),
+  addressLine1: z.string()
+    .min(1, "Address is required")
+    .max(255, "Address must be less than 255 characters"),
+  addressLine2: z.string().max(255, "Address must be less than 255 characters").optional(),
+  city: z.string()
+    .min(1, "City is required")
+    .max(100, "City must be less than 100 characters"),
+  state: z.string()
+    .min(1, "State/Province is required")
+    .max(100, "State must be less than 100 characters"),
+  postalCode: z.string()
+    .min(1, "Postal code is required")
+    .max(20, "Postal code must be less than 20 characters"),
+  country: z.string()
+    .min(1, "Country is required")
+    .max(100, "Country must be less than 100 characters"),
+  propertyType: z.enum(["apartment", "house", "condo", "townhouse", "studio", "loft", "other"]),
+  bedrooms: z.number().min(0, "Bedrooms must be 0 or more"),
+  bathrooms: z.number().min(0, "Bathrooms must be 0 or more"),
+  maxOccupancy: z.number().min(1, "Max occupancy must be at least 1"),
+  squareFeet: z.number().min(0, "Square feet must be 0 or more").optional(),
+  basePrice: z.number().min(0, "Base price must be 0 or more"),
+  cleaningFee: z.number().min(0, "Cleaning fee must be 0 or more"),
+  securityDeposit: z.number().min(0, "Security deposit must be 0 or more"),
+  checkInTime: z.string().optional(),
+  checkOutTime: z.string().optional(),
+  houseRules: z.string().optional(),
+  amenities: z.array(z.string()).default([]),
+});
+
+type PropertyFormData = z.infer<typeof propertySchema>;
+
+const PROPERTY_TYPES = [
+  { value: "apartment", label: "Apartment" },
+  { value: "house", label: "House" },
+  { value: "condo", label: "Condo" },
+  { value: "townhouse", label: "Townhouse" },
+  { value: "studio", label: "Studio" },
+  { value: "loft", label: "Loft" },
+  { value: "other", label: "Other" },
+] as const;
+
+const COMMON_AMENITIES = [
+  "WiFi", "Parking", "Kitchen", "Washing Machine", "Dryer", "Air Conditioning",
+  "Heating", "TV", "Pool", "Gym", "Balcony", "Garden", "Pet Friendly", "Smoking Allowed"
+];
+
+export default function AddPropertyPage() {
+  const navigate = useNavigate();
+  const createPropertyMutation = useCreateProperty();
+  const [newAmenity, setNewAmenity] = useState("");
+
+  const form = useForm({
+    resolver: zodResolver(propertySchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "",
+      propertyType: "apartment" as const,
+      bedrooms: 1,
+      bathrooms: 1,
+      maxOccupancy: 2,
+      squareFeet: undefined,
+      basePrice: 100,
+      cleaningFee: 50,
+      securityDeposit: 200,
+      checkInTime: "",
+      checkOutTime: "",
+      houseRules: "",
+      amenities: [] as string[],
+    },
+  });
+
+  const { watch, setValue } = form;
+  const amenities = watch("amenities");
+
+  const onSubmit = async (data: PropertyFormData) => {
+    try {
+      // Process time fields - convert to proper format or set to undefined if empty
+      const processedData = {
+        ...data,
+        checkInTime: data.checkInTime && data.checkInTime.trim() !== "" ? `${data.checkInTime}:00` : undefined,
+        checkOutTime: data.checkOutTime && data.checkOutTime.trim() !== "" ? `${data.checkOutTime}:00` : undefined,
+      };
+      
+      const result = await createPropertyMutation.mutateAsync(processedData);
+      navigate(`/admin/properties/${result.id}`);
+    } catch (error) {
+      console.error("Failed to create property:", error);
+    }
+  };
+
+  const addAmenity = (amenity: string) => {
+    if (amenity && !(amenities || []).includes(amenity)) {
+      setValue("amenities", [...(amenities || []), amenity]);
+    }
+    setNewAmenity("");
+  };
+
+  const removeAmenity = (amenityToRemove: string) => {
+    setValue("amenities", (amenities || []).filter(a => a !== amenityToRemove));
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/admin/properties")}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Properties
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">Add New Property</h1>
+          <p className="text-muted-foreground">
+            Add a new property to your rental portfolio
+          </p>
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="h-5 w-5" />
+                Basic Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Property Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Cozy Downtown Apartment" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="propertyType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Property Type *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select property type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {PROPERTY_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe your property..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Provide a detailed description of your property
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Location */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Location
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="addressLine1"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 1 *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="123 Main Street" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="addressLine2"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 2</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Apartment, suite, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="New York" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>State/Province *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="NY" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="postalCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Postal Code *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="10001" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="United States" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Property Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Property Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
+                  name="bedrooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bedrooms *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="bathrooms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bathrooms *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="maxOccupancy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Occupancy *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="1"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="squareFeet"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Square Feet</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="checkInTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Check-in Time</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="checkOutTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Check-out Time</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pricing */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Pricing
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="basePrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Base Price per Night *</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className="pl-8"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="cleaningFee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cleaning Fee</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className="pl-8"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="securityDeposit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Security Deposit</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className="pl-8"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Amenities */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Amenities
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Current Amenities */}
+              {(amenities || []).length > 0 && (
+                <div className="space-y-2">
+                  <Label>Selected Amenities</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {(amenities || []).map((amenity) => (
+                      <Badge key={amenity} variant="secondary" className="pr-1">
+                        {amenity}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-auto p-1 ml-1"
+                          onClick={() => removeAmenity(amenity)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add Common Amenities */}
+              <div className="space-y-2">
+                <Label>Common Amenities</Label>
+                <div className="flex flex-wrap gap-2">
+                  {COMMON_AMENITIES.filter(amenity => !(amenities || []).includes(amenity)).map((amenity) => (
+                    <Button
+                      key={amenity}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addAmenity(amenity)}
+                    >
+                      <Plus className="mr-1 h-3 w-3" />
+                      {amenity}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Add Custom Amenity */}
+              <div className="space-y-2">
+                <Label>Add Custom Amenity</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter custom amenity"
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addAmenity(newAmenity);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => addAmenity(newAmenity)}
+                    disabled={!newAmenity.trim()}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* House Rules */}
+          <Card>
+            <CardHeader>
+              <CardTitle>House Rules</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="houseRules"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>House Rules</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g., No smoking, No pets, Quiet hours after 10 PM..."
+                        className="resize-none"
+                        rows={4}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Specify any rules or restrictions for guests
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Error Display */}
+          {createPropertyMutation.error && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                {createPropertyMutation.error.message || "Failed to create property. Please try again."}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Submit Buttons */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-end gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/admin/properties")}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createPropertyMutation.isPending}
+                >
+                  {createPropertyMutation.isPending ? "Creating..." : "Create Property"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
+      </Form>
+    </div>
+  );
+}
