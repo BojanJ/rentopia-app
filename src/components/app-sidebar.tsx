@@ -25,11 +25,6 @@ import { Separator } from "@/components/ui/separator";
 
 // Rentopia property management data
 const data = {
-  user: {
-    name: "Property Manager",
-    email: "manager@rentopia.com",
-    avatar: "/avatars/manager.jpg",
-  },
   // Property Management Menu - for managing the selected property
   propertyMenu: [
     {
@@ -191,7 +186,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.adminMenu} title="Administration" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
