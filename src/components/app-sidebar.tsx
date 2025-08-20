@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { PropertySwitcher } from "@/components/property-switcher";
 import {
@@ -22,6 +21,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 // Rentopia property management data
 const data = {
@@ -30,7 +30,8 @@ const data = {
     email: "manager@rentopia.com",
     avatar: "/avatars/manager.jpg",
   },
-  navMain: [
+  // Property Management Menu - for managing the selected property
+  propertyMenu: [
     {
       title: "Dashboard",
       url: "/dashboard",
@@ -38,40 +39,25 @@ const data = {
       isActive: true,
     },
     {
-      title: "Properties",
-      url: "/dashboard/properties",
-      icon: Home,
+      title: "Bookings",
+      url: "/dashboard/bookings",
+      icon: Calendar,
       items: [
         {
-          title: "All Properties",
-          url: "/dashboard/properties",
+          title: "All Bookings",
+          url: "/dashboard/bookings",
         },
         {
-          title: "Vacant Units",
-          url: "/dashboard/properties/vacant",
+          title: "Check-ins Today",
+          url: "/dashboard/bookings/checkins",
         },
         {
-          title: "Add Property",
-          url: "/dashboard/properties/add",
-        },
-      ],
-    },
-    {
-      title: "Tenants",
-      url: "/dashboard/tenants",
-      icon: Users,
-      items: [
-        {
-          title: "All Tenants",
-          url: "/dashboard/tenants",
+          title: "Check-outs Today",
+          url: "/dashboard/bookings/checkouts",
         },
         {
-          title: "Lease Renewals",
-          url: "/dashboard/tenants/renewals",
-        },
-        {
-          title: "Applications",
-          url: "/dashboard/tenants/applications",
+          title: "New Booking",
+          url: "/dashboard/bookings/new",
         },
       ],
     },
@@ -89,34 +75,29 @@ const data = {
           url: "/dashboard/maintenance/schedule",
         },
         {
-          title: "Service Providers",
-          url: "/dashboard/maintenance/providers",
+          title: "Maintenance History",
+          url: "/dashboard/maintenance/history",
         },
       ],
     },
     {
-      title: "Financials",
-      url: "/dashboard/financials",
+      title: "Pricing",
+      url: "/dashboard/pricing",
       icon: DollarSign,
       items: [
         {
-          title: "Rent Collection",
-          url: "/dashboard/financials/rent",
+          title: "Rate Calendar",
+          url: "/dashboard/pricing/calendar",
         },
         {
-          title: "Expenses",
-          url: "/dashboard/financials/expenses",
+          title: "Seasonal Rates",
+          url: "/dashboard/pricing/seasonal",
         },
         {
-          title: "Reports",
-          url: "/dashboard/financials/reports",
+          title: "Special Offers",
+          url: "/dashboard/pricing/offers",
         },
       ],
-    },
-    {
-      title: "Calendar",
-      url: "/dashboard/calendar",
-      icon: Calendar,
     },
     {
       title: "Documents",
@@ -128,41 +109,65 @@ const data = {
       url: "/dashboard/notifications",
       icon: Bell,
     },
+  ],
+  // Admin Menu - for managing properties and service providers
+  adminMenu: [
+    {
+      title: "Properties",
+      url: "/admin/properties",
+      icon: Home,
+      items: [
+        {
+          title: "All Properties",
+          url: "/admin/properties",
+        },
+        {
+          title: "Add Property",
+          url: "/admin/properties/add",
+        },
+        {
+          title: "Property Settings",
+          url: "/admin/properties/settings",
+        },
+      ],
+    },
+    {
+      title: "Service Providers",
+      url: "/admin/service-providers",
+      icon: Users,
+      items: [
+        {
+          title: "All Providers",
+          url: "/admin/service-providers",
+        },
+        {
+          title: "Add Provider",
+          url: "/admin/service-providers/add",
+        },
+        {
+          title: "Provider Reviews",
+          url: "/admin/service-providers/reviews",
+        },
+      ],
+    },
     {
       title: "Settings",
-      url: "/dashboard/settings",
+      url: "/admin/settings",
       icon: Settings,
       items: [
         {
           title: "Profile",
-          url: "/dashboard/settings/profile",
+          url: "/admin/settings/profile",
         },
         {
           title: "Preferences",
-          url: "/dashboard/settings/preferences",
+          url: "/admin/settings/preferences",
         },
         {
           title: "Integrations",
-          url: "/dashboard/settings/integrations",
+          url: "/admin/settings/integrations",
         },
       ],
-    },
-  ],
-  projects: [
-    {
-      name: "Property Reports",
-      url: "/dashboard/reports",
-      icon: FileText,
-    },
-    {
-      name: "Maintenance Analytics",
-      url: "/dashboard/analytics",
-      icon: BarChart3,
-    },
-    {
-      name: "Tenant Portal",
-      url: "/dashboard/portal",
-      icon: Users,
     },
   ],
 };
@@ -174,8 +179,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <PropertySwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* Property Management Menu */}
+        <NavMain items={data.propertyMenu} title="Property Management" />
+        
+        {/* Separator */}
+        <div className="px-4 py-2">
+          <Separator />
+        </div>
+        
+        {/* Admin Menu */}
+        <NavMain items={data.adminMenu} title="Administration" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
