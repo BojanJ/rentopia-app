@@ -24,27 +24,27 @@ interface TimePickerProps {
 }
 
 // Generate hours (00-23)
-const hours = Array.from({ length: 24 }, (_, i) => 
-  i.toString().padStart(2, '0')
+const hours = Array.from({ length: 24 }, (_, i) =>
+  i.toString().padStart(2, "0")
 );
 
 // Generate minutes (00, 15, 30, 45)
-const minutes = ['00', '15', '30', '45'];
+const minutes = ["00", "15", "30", "45"];
 
-export function TimePicker({ 
-  value, 
-  onChange, 
+export function TimePicker({
+  value,
+  onChange,
   placeholder = "Select time",
   disabled = false,
-  className 
+  className,
 }: TimePickerProps) {
   const [open, setOpen] = React.useState(false);
-  
+
   // Parse the current value
   const [currentHour, currentMinute] = React.useMemo(() => {
-    if (!value) return ['', ''];
-    const [hour, minute] = value.split(':');
-    return [hour || '', minute || ''];
+    if (!value) return ["", ""];
+    const [hour, minute] = value.split(":");
+    return [hour || "", minute || ""];
   }, [value]);
 
   const handleTimeChange = (hour: string, minute: string) => {
@@ -54,23 +54,24 @@ export function TimePicker({
   };
 
   const handleHourChange = (hour: string) => {
-    handleTimeChange(hour, currentMinute || '00');
+    handleTimeChange(hour, currentMinute || "00");
   };
 
   const handleMinuteChange = (minute: string) => {
-    handleTimeChange(currentHour || '00', minute);
+    handleTimeChange(currentHour || "00", minute);
   };
 
   const displayValue = React.useMemo(() => {
-    if (!value) return '';
-    const [hour, minute] = value.split(':');
-    if (!hour || !minute) return '';
-    
+    if (!value) return "";
+    const [hour, minute] = value.split(":");
+    if (!hour || !minute) return "";
+
     // Convert to 12-hour format for display
     const hourNum = parseInt(hour, 10);
-    const period = hourNum >= 12 ? 'PM' : 'AM';
-    const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-    
+    const period = hourNum >= 12 ? "PM" : "AM";
+    const displayHour =
+      hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+
     return `${displayHour}:${minute} ${period}`;
   }, [value]);
 
@@ -105,9 +106,14 @@ export function TimePicker({
                 <SelectContent>
                   {hours.map((hour) => {
                     const hourNum = parseInt(hour, 10);
-                    const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-                    const period = hourNum >= 12 ? 'PM' : 'AM';
-                    
+                    const displayHour =
+                      hourNum === 0
+                        ? 12
+                        : hourNum > 12
+                        ? hourNum - 12
+                        : hourNum;
+                    const period = hourNum >= 12 ? "PM" : "AM";
+
                     return (
                       <SelectItem key={hour} value={hour}>
                         {displayHour} {period}

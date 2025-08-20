@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TimePicker } from "@/components/ui/time-picker";
 import {
   Home,
   ArrowLeft,
@@ -213,7 +214,7 @@ export default function EditPropertyPage() {
 
   const onSubmit = async (data: PropertyFormData) => {
     try {
-      // Process time fields - convert to proper format or set to undefined if empty
+      // Process time fields - they're already in HH:MM format from TimePicker
       const processedData = {
         ...data,
         checkInTime:
@@ -575,7 +576,11 @@ export default function EditPropertyPage() {
                     <FormItem>
                       <FormLabel>Check-in Time</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field} />
+                        <TimePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select check-in time"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -589,7 +594,11 @@ export default function EditPropertyPage() {
                     <FormItem>
                       <FormLabel>Check-out Time</FormLabel>
                       <FormControl>
-                        <Input type="time" {...field} />
+                        <TimePicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select check-out time"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
