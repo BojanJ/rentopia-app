@@ -1,21 +1,20 @@
 import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
+  Home,
+  Users,
+  Wrench,
+  DollarSign,
+  BarChart3,
+  Settings,
+  Calendar,
+  FileText,
+  Bell,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { PropertySwitcher } from "@/components/property-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -24,132 +23,146 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-// This is sample data.
+// Rentopia property management data
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "Property Manager",
+    email: "manager@rentopia.com",
+    avatar: "/avatars/manager.jpg",
   },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: BarChart3,
       isActive: true,
+    },
+    {
+      title: "Properties",
+      url: "/dashboard/properties",
+      icon: Home,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "All Properties",
+          url: "/dashboard/properties",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Vacant Units",
+          url: "/dashboard/properties/vacant",
         },
         {
-          title: "Settings",
-          url: "#",
+          title: "Add Property",
+          url: "/dashboard/properties/add",
         },
       ],
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
+      title: "Tenants",
+      url: "/dashboard/tenants",
+      icon: Users,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "All Tenants",
+          url: "/dashboard/tenants",
         },
         {
-          title: "Explorer",
-          url: "#",
+          title: "Lease Renewals",
+          url: "/dashboard/tenants/renewals",
         },
         {
-          title: "Quantum",
-          url: "#",
+          title: "Applications",
+          url: "/dashboard/tenants/applications",
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
+      title: "Maintenance",
+      url: "/dashboard/maintenance",
+      icon: Wrench,
       items: [
         {
-          title: "Introduction",
-          url: "#",
+          title: "Active Requests",
+          url: "/dashboard/maintenance",
         },
         {
-          title: "Get Started",
-          url: "#",
+          title: "Schedule Service",
+          url: "/dashboard/maintenance/schedule",
         },
         {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
+          title: "Service Providers",
+          url: "/dashboard/maintenance/providers",
         },
       ],
+    },
+    {
+      title: "Financials",
+      url: "/dashboard/financials",
+      icon: DollarSign,
+      items: [
+        {
+          title: "Rent Collection",
+          url: "/dashboard/financials/rent",
+        },
+        {
+          title: "Expenses",
+          url: "/dashboard/financials/expenses",
+        },
+        {
+          title: "Reports",
+          url: "/dashboard/financials/reports",
+        },
+      ],
+    },
+    {
+      title: "Calendar",
+      url: "/dashboard/calendar",
+      icon: Calendar,
+    },
+    {
+      title: "Documents",
+      url: "/dashboard/documents",
+      icon: FileText,
+    },
+    {
+      title: "Notifications",
+      url: "/dashboard/notifications",
+      icon: Bell,
     },
     {
       title: "Settings",
-      url: "#",
-      icon: Settings2,
+      url: "/dashboard/settings",
+      icon: Settings,
       items: [
         {
-          title: "General",
-          url: "#",
+          title: "Profile",
+          url: "/dashboard/settings/profile",
         },
         {
-          title: "Team",
-          url: "#",
+          title: "Preferences",
+          url: "/dashboard/settings/preferences",
         },
         {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
+          title: "Integrations",
+          url: "/dashboard/settings/integrations",
         },
       ],
     },
   ],
   projects: [
     {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
+      name: "Property Reports",
+      url: "/dashboard/reports",
+      icon: FileText,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
+      name: "Maintenance Analytics",
+      url: "/dashboard/analytics",
+      icon: BarChart3,
     },
     {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      name: "Tenant Portal",
+      url: "/dashboard/portal",
+      icon: Users,
     },
   ],
 };
@@ -158,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <PropertySwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
