@@ -21,6 +21,8 @@ import AddPropertyPage from "./pages/Admin/Properties/AddPropertyPage";
 import PropertyDetailsPage from "./pages/Admin/Properties/PropertyDetailsPage";
 import EditPropertyPage from "./pages/Admin/Properties/EditPropertyPage";
 import PropertySettingsPage from "./pages/Admin/Properties/PropertySettingsPage";
+import BookingsPage from "./pages/Dashboard/BookingsPage";
+import BookingsTestPage from "./pages/Dashboard/BookingsTestPage";
 
 function App() {
   // Use the actual auth store instead of hardcoded state
@@ -47,6 +49,8 @@ function App() {
             }
           >
             <Route index element={<DashboardPage />} />
+            <Route path="bookings" element={<BookingsPage />} />
+            <Route path="bookings-test" element={<BookingsTestPage />} />
             {/* You can add more dashboard routes here */}
             {/* <Route path="properties" element={<PropertiesPage />} />
             <Route path="tenants" element={<TenantsPage />} />
