@@ -1,5 +1,14 @@
+import {
+  Bath,
+  BedDouble,
+  Building2,
+  ChevronsUpDown,
+  Home,
+  MapPin,
+  Plus,
+  Users,
+} from "lucide-react";
 import * as React from "react";
-import { ChevronsUpDown, Plus, Building2, Home, MapPin } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -16,8 +25,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { type Property } from "@/store/propertyStore";
 import { useProperties } from "@/hooks/useProperties";
+import { type Property } from "@/store/propertyStore";
 
 // Icon mapping for different property types
 const getPropertyIcon = (propertyType: Property["propertyType"]) => {
@@ -38,7 +47,12 @@ const getPropertyIcon = (propertyType: Property["propertyType"]) => {
 const getPropertyDisplayInfo = (property: Property) => {
   const Icon = getPropertyIcon(property.propertyType);
   const location = `${property.city}, ${property.state}`;
-  const occupancy = `${property.bedrooms}BR • ${property.bathrooms}BA • ${property.maxOccupancy} guests`;
+  // Instead of a string, return an array of occupancy info for icon rendering
+  const occupancy = [
+    { icon: BedDouble, value: property.bedrooms, label: "Bedrooms" },
+    { icon: Bath, value: property.bathrooms, label: "Bathrooms" },
+    { icon: Users, value: property.maxOccupancy, label: "Guests" },
+  ];
 
   return {
     Icon,
@@ -181,8 +195,16 @@ export function PropertySwitcher() {
                         <MapPin className="size-3" />
                         {propertyLocation}
                       </span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {propertyOccupancy}
+                      <span className="truncate text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
+                        {propertyOccupancy.map((item) => (
+                          <span
+                            key={item.label}
+                            className="flex items-center gap-0.5"
+                          >
+                            <item.icon className="size-3" />
+                            {item.value}
+                          </span>
+                        ))}
                       </span>
                     </div>
                     <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
