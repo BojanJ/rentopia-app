@@ -127,6 +127,21 @@ const data = {
       ],
     },
     {
+      title: "Bookings",
+      url: "/admin/bookings",
+      icon: Calendar,
+      items: [
+        {
+          title: "All Bookings",
+          url: "/admin/bookings",
+        },
+        {
+          title: "Add Booking",
+          url: "/admin/bookings/add",
+        },
+      ],
+    },
+    {
       title: "Service Providers",
       url: "/admin/service-providers",
       icon: Users,

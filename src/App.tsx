@@ -24,6 +24,12 @@ import PropertySettingsPage from "./pages/Admin/Properties/PropertySettingsPage"
 import BookingsPage from "./pages/Dashboard/BookingsPage";
 import BookingsTestPage from "./pages/Dashboard/BookingsTestPage";
 
+// Booking Management Pages
+import BookingsListPage from "./pages/Admin/Bookings/BookingsListPage";
+import AddBookingPage from "./pages/Admin/Bookings/AddBookingPage";
+import EditBookingPage from "./pages/Admin/Bookings/EditBookingPage";
+import BookingDetailsPage from "./pages/Admin/Bookings/BookingDetailsPage";
+
 function App() {
   // Use the actual auth store instead of hardcoded state
   const { isAuthenticated } = useAuthStore();
@@ -71,6 +77,10 @@ function App() {
             <Route path="properties/:id" element={<PropertyDetailsPage />} />
             <Route path="properties/:id/edit" element={<EditPropertyPage />} />
             <Route path="properties/settings" element={<PropertySettingsPage />} />
+            <Route path="bookings" element={<BookingsListPage />} />
+            <Route path="bookings/add" element={<AddBookingPage />} />
+            <Route path="bookings/:id" element={<BookingDetailsPage />} />
+            <Route path="bookings/:id/edit" element={<EditBookingPage />} />
             <Route path="service-providers" element={<div>Service Providers (Coming Soon)</div>} />
             <Route path="settings/*" element={<div>Settings (Coming Soon)</div>} />
           </Route>
