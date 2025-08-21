@@ -49,6 +49,8 @@ export interface CreatePropertyRequest {
   basePrice: number;
   cleaningFee: number;
   securityDeposit: number;
+  icalUrl?: string;
+  syncEnabled?: boolean;
 }
 
 export interface UpdatePropertyRequest extends Partial<CreatePropertyRequest> {

@@ -31,6 +31,9 @@ export interface Property {
   cleaningFee: number;
   securityDeposit: number;
   status: string;
+  icalUrl?: string;
+  lastSyncAt?: string;
+  syncEnabled: boolean;
   createdAt: string;
   updatedAt: string;
   userId: string;

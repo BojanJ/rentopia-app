@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,7 @@ import {
   Settings,
   Plus,
   X,
+  Calendar,
 } from "lucide-react";
 import { useCreateProperty } from "@/hooks/usePropertyApi";
 
@@ -78,6 +80,8 @@ const propertySchema = z.object({
   checkOutTime: z.string().optional(),
   houseRules: z.string().optional(),
   amenities: z.array(z.string()).default([]),
+  icalUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  syncEnabled: z.boolean().default(false),
 });
 
 type PropertyFormData = z.infer<typeof propertySchema>;
@@ -125,6 +129,8 @@ export default function AddPropertyPage() {
       checkOutTime: "",
       houseRules: "",
       amenities: [] as string[],
+      icalUrl: "",
+      syncEnabled: false,
     },
   });
 
@@ -138,6 +144,8 @@ export default function AddPropertyPage() {
         ...data,
         checkInTime: data.checkInTime && data.checkInTime.trim() !== "" ? `${data.checkInTime}:00` : undefined,
         checkOutTime: data.checkOutTime && data.checkOutTime.trim() !== "" ? `${data.checkOutTime}:00` : undefined,
+        icalUrl: data.icalUrl && data.icalUrl.trim() !== "" ? data.icalUrl : undefined,
+        syncEnabled: data.syncEnabled || false,
       };
       
       const result = await createPropertyMutation.mutateAsync(processedData);
@@ -638,6 +646,60 @@ export default function AddPropertyPage() {
                   </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Calendar Sync */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Calendar Sync
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="icalUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Booking Calendar URL (iCal)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com/calendar.ics"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the iCal URL from your booking platform (Airbnb, Booking.com, etc.)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="syncEnabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">
+                        Enable Calendar Sync
+                      </FormLabel>
+                      <FormDescription>
+                        Automatically sync bookings from the external calendar
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 

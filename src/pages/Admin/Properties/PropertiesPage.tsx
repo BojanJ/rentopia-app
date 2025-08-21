@@ -250,6 +250,7 @@ export default function PropertiesPage() {
                       <TableHead>Details</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Calendar Sync</TableHead>
                       <TableHead className="w-[70px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -331,6 +332,24 @@ export default function PropertiesPage() {
                           <Badge className={getStatusColor(property.status)}>
                             {property.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {property.syncEnabled ? (
+                              <Badge variant="default" className="bg-green-100 text-green-800">
+                                Enabled
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary">
+                                Disabled
+                              </Badge>
+                            )}
+                            {property.icalUrl && (
+                              <span className="text-xs text-muted-foreground">
+                                iCal connected
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
