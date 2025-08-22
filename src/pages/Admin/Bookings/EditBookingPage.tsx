@@ -93,6 +93,10 @@ const PAYMENT_STATUSES = [
 export default function EditBookingPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  
+  // Debug logging
+  console.log("🔧 EditBookingPage loaded with ID:", id);
+  
   const updateBookingMutation = useUpdateBooking();
   const { properties } = useProperties();
   
@@ -102,6 +106,10 @@ export default function EditBookingPage() {
 
   // Fetch the booking data
   const { data: booking, isLoading, error } = useBooking(id!, !!id);
+
+  console.log("🔧 EditBookingPage - Booking data:", { booking, isLoading, error });
+
+  
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -130,35 +138,39 @@ export default function EditBookingPage() {
 
   // Load booking data when it becomes available
   useEffect(() => {
-    if (booking) {
-      const checkInDate = parseISO(booking.checkInDate);
-      const checkOutDate = parseISO(booking.checkOutDate);
-      
-      setDateRange({
-        from: checkInDate,
-        to: checkOutDate,
-      });
+    if (booking && booking.checkInDate && booking.checkOutDate) {
+      try {
+        const checkInDate = parseISO(booking.checkInDate);
+        const checkOutDate = parseISO(booking.checkOutDate);
+        
+        setDateRange({
+          from: checkInDate,
+          to: checkOutDate,
+        });
 
-      reset({
-        propertyId: booking.propertyId,
-        guestName: booking.guestName,
-        guestEmail: booking.guestEmail || "",
-        guestPhone: booking.guestPhone || "",
-        numberOfGuests: booking.numberOfGuests,
-        checkInDate: booking.checkInDate,
-        checkOutDate: booking.checkOutDate,
-        baseAmount: booking.baseAmount,
-        cleaningFee: booking.cleaningFee,
-        taxes: booking.taxes,
-        securityDeposit: booking.securityDeposit,
-        bookingStatus: booking.bookingStatus,
-        paymentStatus: booking.paymentStatus,
-        specialRequests: booking.specialRequests || "",
-        internalNotes: booking.internalNotes || "",
-        bookingSource: booking.bookingSource || "",
-      });
+        reset({
+          propertyId: booking.propertyId,
+          guestName: booking.guestName,
+          guestEmail: booking.guestEmail || "",
+          guestPhone: booking.guestPhone || "",
+          numberOfGuests: booking.numberOfGuests,
+          checkInDate: booking.checkInDate,
+          checkOutDate: booking.checkOutDate,
+          baseAmount: booking.baseAmount,
+          cleaningFee: booking.cleaningFee,
+          taxes: booking.taxes,
+          securityDeposit: booking.securityDeposit,
+          bookingStatus: booking.bookingStatus,
+          paymentStatus: booking.paymentStatus,
+          specialRequests: booking.specialRequests || "",
+          internalNotes: booking.internalNotes || "",
+          bookingSource: booking.bookingSource || "",
+        });
 
-      setTotalAmount(booking.totalAmount);
+        setTotalAmount(booking.totalAmount);
+      } catch (error) {
+        console.error("Error parsing booking dates:", error);
+      }
     }
   }, [booking, reset]);
 
@@ -172,8 +184,8 @@ export default function EditBookingPage() {
       setValue("checkOutDate", format(dateRange.to, "yyyy-MM-dd"));
       
       // Calculate total amount
-      const baseTotal = watchedValues.baseAmount * nights;
-      const total = baseTotal + watchedValues.cleaningFee + watchedValues.taxes;
+      const baseTotal = Number(watchedValues.baseAmount || 0) * nights;
+      const total = baseTotal + Number(watchedValues.cleaningFee || 0) + Number(watchedValues.taxes || 0);
       setTotalAmount(total);
     } else {
       setNightsCount(0);
@@ -404,6 +416,7 @@ export default function EditBookingPage() {
                             step="0.01"
                             placeholder="0.00"
                             {...field}
+                            value={field.value || 0}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           />
                         </FormControl>
@@ -425,6 +438,7 @@ export default function EditBookingPage() {
                             step="0.01"
                             placeholder="0.00"
                             {...field}
+                            value={field.value || 0}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           />
                         </FormControl>
@@ -448,6 +462,7 @@ export default function EditBookingPage() {
                             step="0.01"
                             placeholder="0.00"
                             {...field}
+                            value={field.value || 0}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           />
                         </FormControl>
@@ -469,6 +484,7 @@ export default function EditBookingPage() {
                             step="0.01"
                             placeholder="0.00"
                             {...field}
+                            value={field.value || 0}
                             onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           />
                         </FormControl>
@@ -483,16 +499,16 @@ export default function EditBookingPage() {
                   <div className="mt-4 p-4 bg-muted rounded-lg">
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span>Base price ({nightsCount} nights × ${watchedValues.baseAmount})</span>
-                        <span>${(watchedValues.baseAmount * nightsCount).toFixed(2)}</span>
+                        <span>Base price ({nightsCount} nights × ${Number(watchedValues.baseAmount || 0)})</span>
+                        <span>${(Number(watchedValues.baseAmount || 0) * nightsCount).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Cleaning fee</span>
-                        <span>${watchedValues.cleaningFee.toFixed(2)}</span>
+                        <span>${Number(watchedValues.cleaningFee || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Taxes</span>
-                        <span>${watchedValues.taxes.toFixed(2)}</span>
+                        <span>${Number(watchedValues.taxes || 0).toFixed(2)}</span>
                       </div>
                       <div className="border-t pt-2 flex justify-between font-semibold">
                         <span>Total</span>

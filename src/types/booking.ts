@@ -13,8 +13,14 @@ export interface Booking {
   taxes: number;
   totalAmount: number;
   securityDeposit: number;
-  bookingStatus: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled' | 'no_show';
-  paymentStatus: 'pending' | 'partial' | 'paid' | 'refunded';
+  bookingStatus:
+    | "pending"
+    | "confirmed"
+    | "checked_in"
+    | "checked_out"
+    | "cancelled"
+    | "no_show";
+  paymentStatus: "pending" | "partial" | "paid" | "refunded";
   specialRequests?: string;
   internalNotes?: string;
   bookingSource?: string;
@@ -53,6 +59,10 @@ export interface BookingsResponse {
     offset: number;
     hasMore: boolean;
   };
+}
+
+export interface BookingResponse {
+  booking: Booking;
 }
 
 // Keep the old interface for backwards compatibility

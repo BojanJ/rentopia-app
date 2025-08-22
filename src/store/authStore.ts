@@ -28,10 +28,16 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      // Initial state
-      user: null,
-      token: null,
-      isAuthenticated: false,
+      // Initial state - Auto-login for development
+      user: {
+        id: 'demo-user-1',
+        email: 'demo@example.com',
+        firstName: 'Demo',
+        lastName: 'User',
+        role: 'PROPERTY_OWNER'
+      },
+      token: 'demo-token',
+      isAuthenticated: true,
       isLoading: false,
 
       // Actions

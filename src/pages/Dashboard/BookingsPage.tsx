@@ -117,7 +117,9 @@ function BookingDetailsDialog({
   const navigate = useNavigate();
 
   const handleEditBooking = () => {
-    navigate(`/admin/bookings/edit/${booking.id}`);
+    console.log("🚀 Calendar: Navigating to edit booking:", booking.id);
+    console.log("🚀 Calendar: Navigation path:", `/admin/bookings/${booking.id}/edit`);
+    navigate(`/admin/bookings/${booking.id}/edit`);
   };
 
   return (

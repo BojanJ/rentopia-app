@@ -75,7 +75,9 @@ export function BookingsListView({ propertyId, onBookingSelect }: BookingsListVi
   const bookings = bookingsResponse?.bookings || [];
 
   const handleEditBooking = (bookingId: string) => {
-    navigate(`/admin/bookings/edit/${bookingId}`);
+    console.log("🚀 Navigating to edit booking:", bookingId);
+    console.log("🚀 Navigation path:", `/admin/bookings/${bookingId}/edit`);
+    navigate(`/admin/bookings/${bookingId}/edit`);
   };
 
   const handleDeleteBooking = async (bookingId: string) => {
