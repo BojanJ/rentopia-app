@@ -31,7 +31,7 @@ const data = {
       title: "Dashboard",
       url: "/dashboard",
       icon: BarChart3,
-      isActive: true,
+      // isActive: true,
     },
     {
       title: "Bookings",
