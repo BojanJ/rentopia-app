@@ -15,8 +15,13 @@ import {
   ChevronRight,
   Eye,
   Plus,
+  Edit,
+  MoreHorizontal,
+  List,
+  Calendar,
 } from "lucide-react";
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Badge } from "../../components/ui/badge";
@@ -36,7 +41,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
 import { Skeleton } from "../../components/ui/skeleton";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -48,6 +65,7 @@ import { demoProperties } from "../../data/demoProperties";
 import { useBookingCalendar } from "../../hooks/useBookings";
 import { usePropertyStore } from "../../store/propertyStore";
 import type { Booking } from "../../types/booking";
+import { BookingsListView } from "../../components/BookingsListView";
 
 const getStatusColor = (status: Booking["bookingStatus"]) => {
   switch (status) {
@@ -96,12 +114,33 @@ function BookingDetailsDialog({
   booking,
   children,
 }: BookingDetailsDialogProps) {
+  const navigate = useNavigate();
+
+  const handleEditBooking = () => {
+    navigate(`/admin/bookings/edit/${booking.id}`);
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Booking Details</DialogTitle>
+          <DialogTitle className="flex items-center justify-between">
+            Booking Details
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleEditBooking}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Booking
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </DialogTitle>
           <DialogDescription>
             {booking.confirmationCode &&
               `Confirmation: ${booking.confirmationCode}`}
@@ -196,6 +235,7 @@ function BookingDetailsDialog({
 
 export default function BookingsPage() {
   const { selectedProperty, setSelectedProperty } = usePropertyStore();
+  const navigate = useNavigate();
 
   // For testing purposes, automatically set a demo property if none is selected
   React.useEffect(() => {
@@ -225,6 +265,10 @@ export default function BookingsPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
     new Date()
   );
+
+  const handleAddBooking = () => {
+    navigate("/admin/bookings/add");
+  };
 
   if (!selectedProperty) {
     return (
@@ -270,13 +314,28 @@ export default function BookingsPage() {
               Manage bookings for {selectedProperty.name}
             </p>
           </div>
-          <Button>
+          <Button onClick={handleAddBooking}>
             <Plus className="mr-2 h-4 w-4" />
             Add Booking
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Tabs for Calendar and List Views */}
+        <Tabs defaultValue="calendar" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Calendar View
+            </TabsTrigger>
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <List className="h-4 w-4" />
+              List View
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Calendar View */}
+          <TabsContent value="calendar" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar */}
           <div className="lg:col-span-2">
             <Card>
@@ -545,7 +604,17 @@ export default function BookingsPage() {
               </CardContent>
             </Card>
           </div>
-        </div>
+            </div>
+          </TabsContent>
+
+          {/* List View */}
+          <TabsContent value="list" className="space-y-6">
+            <BookingsListView 
+              propertyId={selectedProperty.id} 
+              onBookingSelect={() => {}} 
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
